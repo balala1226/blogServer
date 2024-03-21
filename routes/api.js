@@ -19,4 +19,11 @@ router.get('/all_blogs', blogPostController.get_all);
 router.put('/update_blog/:id',  passport.authenticate('jwt', {session: false}), blogPostController.update_blog);
 router.delete('/delete_blog/:id',  passport.authenticate('jwt', {session: false}), blogPostController.delete_blog);
 
+//comments posts
+router.post('/create_comment',  passport.authenticate('jwt', {session: false}), commentController.create_comment);
+router.get('/get_blog_comments/:postId', commentController.get_all_post_comments);
+router.get('/get_comment/:id', commentController.get_comment);
+router.put('/update_comment/:id',  passport.authenticate('jwt', {session: false}), commentController.update_comment);
+router.delete('/delete_blog_comment/:id',  passport.authenticate('jwt', {session: false}), commentController.delete_blogPost_comment);
+
 module.exports = router;

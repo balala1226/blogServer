@@ -9,7 +9,7 @@ const Comment = require('../models/comment');
 exports.get_all= async function(req, res, next){
     const blogPosts = await BlogPost
     .find()
-    .populate('user')
+    .populate({path: 'user', select: '-password'})
     .exec();
 
     if (!blogPosts){
@@ -25,7 +25,8 @@ exports.get_all= async function(req, res, next){
 exports.get_blog= async function(req, res, next){
     const blogPost = await BlogPost
     .findOne({_id: req.params.id})
-    .populate('user')
+    .populate({path: 'user', select: '-password'})
+    .populate({path: 'comments', populate:{path: 'user', select: '-password'}})
     .exec();
 
     if (!blogPost){
@@ -64,7 +65,8 @@ exports.create_blog = [
             });
         }
 
-        const user = await User.findOne({_id: req.body.userId}).exec();
+        const user = await User
+        .findOne({_id: req.body.userId}, {password: 0});
 
         const newBlog= new BlogPost({
             title:req.body.title,
@@ -121,7 +123,9 @@ exports.update_blog = [
             blogImageUrl: imagaUrl,
             content: req.body.content,
             date: new Date(),
-        });
+        })
+        .populate({path: 'user', select: '-password'})
+        .populate({path: 'comments', populate:{path: 'user', select: '-password'}});
         
         res.status(200).json({
             message: 'Blog updated successfully',
@@ -133,7 +137,7 @@ exports.update_blog = [
 exports.delete_blog = asyncHandler(async (req, res, next) => {
     const blogPost = await BlogPost
     .findOne({_id: req.params.id})
-    .populate('user')
+    .populate({path: 'user', select: '-password'})
     .exec();
     
     if (!blogPost){
