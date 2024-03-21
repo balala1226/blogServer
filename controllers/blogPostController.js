@@ -77,6 +77,10 @@ exports.create_blog = [
             reactions: []
         })
         await newBlog.save();
+
+        const userUpdate = await User.findByIdAndUpdate(req.body.userId, {
+            $push: {posts: newBlog}
+        });
         
         res.status(200).json({
             message: 'Blog created successfully',
@@ -112,8 +116,6 @@ exports.update_blog = [
             });
         }
 
-        const user = await User.findOne({_id: req.params.userId}).exec();
-
         const blogPost = await BlogPost.findByIdAndUpdate(req.params.id, {
             title:req.body.title,
             blogImageUrl: imagaUrl,
@@ -129,7 +131,10 @@ exports.update_blog = [
 ];
 
 exports.delete_blog = asyncHandler(async (req, res, next) => {
-    const blogPost = await BlogPost.findByIdAndDelete({_id: req.params.id});
+    const blogPost = await BlogPost
+    .findOne({_id: req.params.id})
+    .populate('user')
+    .exec();
     
     if (!blogPost){
         return res.status(401).json({
@@ -137,7 +142,13 @@ exports.delete_blog = asyncHandler(async (req, res, next) => {
         });
     }
 
-    // const user = await User.findOne({_id: req.params.userId}).exec();
-    const deletedComments = await Comment.deleteMany({postId: req.params.id});
+    const userId = blogPost.user._id;
+    await BlogPost.findByIdAndDelete({_id: req.params.id});
+
+    await User.findByIdAndUpdate(userId, {
+        $pull: {posts: req.params.id}
+    });
+
+    await Comment.deleteMany({postId: req.params.id});
     return res.status(200).json({message: 'DeleteSuccess'});
 });
