@@ -1,9 +1,9 @@
 const jwt = require('jsonwebtoken');
-const passport = require('passport')
-const { body, validationResult } = require('express-validator')
+const passport = require('passport');
+const { body, validationResult } = require('express-validator');
 const asyncHandler = require("express-async-handler");
 const bcrypt= require('bcryptjs');
-const User = require('../models/user')
+const User = require('../models/user');
 require("dotenv").config();
 
 exports.login_post = [

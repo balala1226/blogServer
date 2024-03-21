@@ -12,4 +12,11 @@ router.get('/loginfail', authController.login_fail);
 router.post('/signup', authController.sign_up_post);
 router.post('/logout', authController.logout);
 
+//blog posts
+router.post('/create_blog',  passport.authenticate('jwt', {session: false}), blogPostController.create_blog);
+router.get('/get_blog/:id', blogPostController.get_blog);
+router.get('/all_blogs', blogPostController.get_all);
+router.put('/update_blog/:id',  passport.authenticate('jwt', {session: false}), blogPostController.update_blog);
+router.delete('/delete_blog/:id',  passport.authenticate('jwt', {session: false}), blogPostController.delete_blog);
+
 module.exports = router;
