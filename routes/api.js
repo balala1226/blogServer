@@ -26,4 +26,7 @@ router.get('/get_comment/:id', commentController.get_comment);
 router.put('/update_comment/:id',  passport.authenticate('jwt', {session: false}), commentController.update_comment);
 router.delete('/delete_blog_comment/:id',  passport.authenticate('jwt', {session: false}), commentController.delete_blogPost_comment);
 
+//user
+router.get('/get_user/:id', userController.get_user);
+
 module.exports = router;
