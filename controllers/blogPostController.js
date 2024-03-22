@@ -8,6 +8,8 @@ const Comment = require('../models/comment');
 
 const path = require("path");
 const fs = require("fs");
+const uploadImage = require('../helpers/uploadCloudinary');
+
 
 function deleteImage(filePath) {
     // Construct the full path to the image file
@@ -68,8 +70,10 @@ exports.create_blog = [
         const errors = validationResult(req)
 
         var imageUrl = "-";
-        if (req.file){
-            imageUrl = "images/"+req.file.filename;
+        if (req.body.blogImage){
+            const imageLink = await uploadImage(req.body.blogImage);
+            imageUrl = imageLink;
+            console.log("imageurl " + imageUrl)
         }
 
         if (!errors.isEmpty()){
@@ -130,10 +134,10 @@ exports.update_blog = [
         .populate({path: 'comments', populate:{path: 'user', select: '-password'}})
         .exec();
 
-        var imageUrl = oldBlogPost.blogImageUrl;
-        if (req.file){
-            deleteImage(oldBlogPost.blogImageUrl);
-            imageUrl = "images/"+req.file.filename;
+        var imageUrl = "-";
+        if (req.body.blogImage){
+            const imageLink = await uploadImage(req.body.blogImage);
+            imageUrl = imageLink;
         }
 
         if (!errors.isEmpty()){
