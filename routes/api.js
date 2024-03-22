@@ -6,6 +6,20 @@ const userController = require('../controllers/userController');
 const blogPostController = require('../controllers/blogPostController');
 const commentController = require('../controllers/commentController');
 
+const path = require("path");
+const fs = require("fs");
+
+const multer = require("multer");
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, "public/images");
+  },
+  filename: (req, file, cb) => {
+    cb(null, Date.now() + '-' + file.originalname);
+  },
+});
+const upload = multer({ storage: storage });
+
 //authentications
 router.post('/login', authController.login_post);
 router.get('/loginfail', authController.login_fail);
@@ -13,10 +27,10 @@ router.post('/signup', authController.sign_up_post);
 router.post('/logout', authController.logout);
 
 //blog posts
-router.post('/create_blog',  passport.authenticate('jwt', {session: false}), blogPostController.create_blog);
+router.post('/create_blog', upload.single('blogImage'), passport.authenticate('jwt', {session: false}), blogPostController.create_blog);
 router.get('/get_blog/:id', blogPostController.get_blog);
 router.get('/all_blogs', blogPostController.get_all);
-router.put('/update_blog/:id',  passport.authenticate('jwt', {session: false}), blogPostController.update_blog);
+router.put('/update_blog/:id', upload.single('blogImage'),  passport.authenticate('jwt', {session: false}), blogPostController.update_blog);
 router.delete('/delete_blog/:id',  passport.authenticate('jwt', {session: false}), blogPostController.delete_blog);
 
 //comments posts

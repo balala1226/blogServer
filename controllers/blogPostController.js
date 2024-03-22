@@ -6,6 +6,19 @@ const User = require('../models/user');
 const BlogPost = require('../models/blogPost');
 const Comment = require('../models/comment');
 
+const path = require("path");
+const fs = require("fs");
+
+function deleteImage(filePath) {
+    // Construct the full path to the image file
+    const fullPath = "public/" + filePath;
+    // Check if the file exists
+    if (fs.existsSync(fullPath) && !filePath.includes("-default.")) {
+        // File exists, delete it
+        fs.unlinkSync(fullPath);
+    }
+}
+
 exports.get_all= async function(req, res, next){
     const blogPosts = await BlogPost
     .find()
@@ -54,11 +67,15 @@ exports.create_blog = [
         // Extract the validation errors from a request.
         const errors = validationResult(req)
 
-        const imagaUrl = "-";//Todo: fix
+        var imageUrl = "-";
+        if (req.file){
+            imageUrl = "images/"+req.file.filename;
+        }
+
         if (!errors.isEmpty()){
             return res.status(403).json({
                 title: req.body.title,
-                blogImageUrl: imagaUrl,
+                blogImageUrl: imageUrl,
                 content: req.body.content,
                 isPublished: req.body.isPublished,
                 errors: errors.array()
@@ -70,7 +87,7 @@ exports.create_blog = [
 
         const newBlog= new BlogPost({
             title:req.body.title,
-            blogImageUrl: imagaUrl,
+            blogImageUrl: imageUrl,
             content: req.body.content,
             date: new Date(),
             user:  user,
@@ -80,7 +97,7 @@ exports.create_blog = [
         })
         await newBlog.save();
 
-        const userUpdate = await User.findByIdAndUpdate(req.body.userId, {
+        await User.findByIdAndUpdate(req.body.userId, {
             $push: {posts: newBlog}
         });
         
@@ -107,20 +124,31 @@ exports.update_blog = [
         // Extract the validation errors from a request.
         const errors = validationResult(req)
 
-        const imagaUrl = "-";//Todo: fix
+        const oldBlogPost = await BlogPost
+        .findOne({_id: req.params.id})
+        .populate({path: 'user', select: '-password'})
+        .populate({path: 'comments', populate:{path: 'user', select: '-password'}})
+        .exec();
+
+        var imageUrl = oldBlogPost.blogImageUrl;
+        if (req.file){
+            deleteImage(oldBlogPost.blogImageUrl);
+            imageUrl = "images/"+req.file.filename;
+        }
+
         if (!errors.isEmpty()){
             return res.status(403).json({
                 title: req.body.title,
-                blogImageUrl: imagaUrl,
+                blogImageUrl: imageUrl,
                 content: req.body.content,
                 isPublished: req.body.isPublished,
                 errors: errors.array()
             });
         }
 
-        const blogPost = await BlogPost.findByIdAndUpdate(req.params.id, {
+        const updatedBlogPost = await BlogPost.findByIdAndUpdate(req.params.id, {
             title:req.body.title,
-            blogImageUrl: imagaUrl,
+            blogImageUrl: imageUrl,
             content: req.body.content,
             date: new Date(),
         })
@@ -129,7 +157,7 @@ exports.update_blog = [
         
         res.status(200).json({
             message: 'Blog updated successfully',
-            blogPost: blogPost
+            blogPost: updatedBlogPost
         })
     }),
 ];
@@ -146,6 +174,9 @@ exports.delete_blog = asyncHandler(async (req, res, next) => {
         });
     }
 
+    const imagePath = blogPost.blogImageUrl;
+    deleteImage(imagePath);
+    
     const userId = blogPost.user._id;
     await BlogPost.findByIdAndDelete({_id: req.params.id});
 
@@ -154,5 +185,6 @@ exports.delete_blog = asyncHandler(async (req, res, next) => {
     });
 
     await Comment.deleteMany({postId: req.params.id});
+
     return res.status(200).json({message: 'DeleteSuccess'});
 });
