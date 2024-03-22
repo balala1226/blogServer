@@ -27,7 +27,12 @@ db.on("error", console.error.bind(console, "mongo connection error"));
 var app = express();
 
 let corsOptions = {
-  origin: ['http://localhost:8080', 'http://localhost:5173'],
+  origin: [
+    'http://localhost:8080',
+    'http://localhost:5173',
+    'https://blog-site-two-iota.vercel.app/',
+    'https://blog-cms-sepia-eight.vercel.app/'
+  ],
   optionsSuccessStatus: 200
 }
 
