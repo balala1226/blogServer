@@ -27,13 +27,16 @@ db.on("error", console.error.bind(console, "mongo connection error"));
 var app = express();
 
 let corsOptions = {
-  origin: [
-    'http://localhost:8080',
-    'http://localhost:5173',
-    'https://blog-site-two-iota.vercel.app/',
-    'https://blog-cms-sepia-eight.vercel.app/'
-  ],
-  optionsSuccessStatus: 200
+  // origin: [
+  //   'http://localhost:8080',
+  //   'http://localhost:5173',
+  //   'https://blog-site-two-iota.vercel.app/',
+  //   'https://blog-cms-sepia-eight.vercel.app/'
+  // ],
+  // optionsSuccessStatus: 200
+   origin:'*', 
+   credentials:true,
+   optionSuccessStatus:200,
 }
 
 // view engine setup
@@ -45,7 +48,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
-app.options('*', cors(corsOptions));
+app.use(cors(corsOptions));
 
 const User = require("./models/user");
 
